@@ -45,6 +45,7 @@ export const LoginResponse = zod.object({
     school: zod.string(),
     subject: zod.string().nullish(),
     status: zod.string(),
+    avatarData: zod.string().nullish(),
     createdAt: zod.string(),
   }),
 });
@@ -60,6 +61,26 @@ export const GetMeResponse = zod.object({
   school: zod.string(),
   subject: zod.string().nullish(),
   status: zod.string(),
+  avatarData: zod.string().nullish(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Upload profile photo
+ */
+export const UpdateMyAvatarBody = zod.object({
+  avatarData: zod.string(),
+});
+
+export const UpdateMyAvatarResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  email: zod.string(),
+  role: zod.string(),
+  school: zod.string(),
+  subject: zod.string().nullish(),
+  status: zod.string(),
+  avatarData: zod.string().nullish(),
   createdAt: zod.string(),
 });
 
@@ -78,6 +99,7 @@ export const UpdateMyStatusResponse = zod.object({
   school: zod.string(),
   subject: zod.string().nullish(),
   status: zod.string(),
+  avatarData: zod.string().nullish(),
   createdAt: zod.string(),
 });
 
@@ -190,5 +212,6 @@ export const ListTeachersResponseItem = zod.object({
   school: zod.string(),
   subject: zod.string(),
   status: zod.string(),
+  avatarData: zod.string().nullish(),
 });
 export const ListTeachersResponse = zod.array(ListTeachersResponseItem);

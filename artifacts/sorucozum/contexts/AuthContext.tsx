@@ -19,6 +19,7 @@ export interface AppUser {
   school: string;
   subject?: string | null;
   status: string;
+  avatarData?: string | null;
   createdAt: string;
 }
 

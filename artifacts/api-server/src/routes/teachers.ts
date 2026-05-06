@@ -31,6 +31,7 @@ router.get(
         school: t.school,
         subject: t.subject ?? "",
         status: t.status,
+        avatarData: t.avatarData ?? null,
       })),
     );
   },

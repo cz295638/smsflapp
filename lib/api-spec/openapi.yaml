@@ -104,6 +104,27 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /users/me/avatar:
+    patch:
+      operationId: updateMyAvatar
+      tags: [users]
+      summary: Upload profile photo
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAvatarBody"
+      responses:
+        "200":
+          description: Avatar updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
   /users/me/status:
     patch:
       operationId: updateMyStatus
@@ -312,6 +333,13 @@ components:
           type: string
       required: [email, password]
 
+    UpdateAvatarBody:
+      type: object
+      properties:
+        avatarData:
+          type: string
+      required: [avatarData]
+
     User:
       type: object
       properties:
@@ -330,6 +358,9 @@ components:
           nullable: true
         status:
           type: string
+        avatarData:
+          type: string
+          nullable: true
         createdAt:
           type: string
       required: [id, name, email, role, school, status, createdAt]
@@ -454,6 +485,9 @@ components:
           type: string
         status:
           type: string
+        avatarData:
+          type: string
+          nullable: true
       required: [id, name, school, subject, status]
 
     TeacherList:

@@ -8,7 +8,6 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Animated,
   Dimensions,
   FlatList,
   Image,
@@ -468,23 +467,35 @@ export default function AskScreen() {
                   }}
                 >
                   <View style={s.teacherAvatar}>
-                    <Text style={s.teacherAvatarText}>
-                      {item.name.charAt(0).toUpperCase()}
-                    </Text>
+                    {(item as any).avatarData ? (
+                      <Image
+                        source={{ uri: (item as any).avatarData }}
+                        style={s.teacherAvatar}
+                      />
+                    ) : (
+                      <Text style={s.teacherAvatarText}>
+                        {item.name.charAt(0).toUpperCase()}
+                      </Text>
+                    )}
                   </View>
                   <View style={s.teacherInfo}>
                     <Text style={s.teacherName}>{item.name}</Text>
                     <Text style={s.teacherSchool}>
-                      {item.school}{" "}
-                      {item.school === user?.school ? "• Okulundan" : ""}
+                      {item.school}
+                      {item.school === user?.school ? " • Okulunuzdan" : ""}
                     </Text>
                   </View>
-                  <View
-                    style={[
-                      s.statusDot,
-                      { backgroundColor: item.status === "available" ? colors.success : colors.warning },
-                    ]}
-                  />
+                  <View style={{ alignItems: "center", gap: 4 }}>
+                    <View
+                      style={[
+                        s.statusDot,
+                        { backgroundColor: item.status === "available" ? colors.success : colors.warning },
+                      ]}
+                    />
+                    <Text style={{ fontSize: 10, color: colors.mutedForeground, fontFamily: "Inter_400Regular" }}>
+                      {item.status === "available" ? "Müsait" : "Dersde"}
+                    </Text>
+                  </View>
                 </Pressable>
               )}
             />

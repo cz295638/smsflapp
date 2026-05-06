@@ -35,6 +35,10 @@ export interface LoginBody {
   password: string;
 }
 
+export interface UpdateAvatarBody {
+  avatarData: string;
+}
+
 export interface User {
   id: number;
   name: string;
@@ -43,6 +47,7 @@ export interface User {
   school: string;
   subject?: string | null;
   status: string;
+  avatarData?: string | null;
   createdAt: string;
 }
 
@@ -112,6 +117,7 @@ export interface Teacher {
   school: string;
   subject: string;
   status: string;
+  avatarData?: string | null;
 }
 
 export type TeacherList = Teacher[];

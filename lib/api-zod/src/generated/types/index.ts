@@ -22,6 +22,7 @@ export * from "./solution";
 export * from "./submitSolutionBody";
 export * from "./teacher";
 export * from "./teacherList";
+export * from "./updateAvatarBody";
 export * from "./updateStatusBody";
 export * from "./updateStatusBodyStatus";
 export * from "./user";

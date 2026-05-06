@@ -24,6 +24,7 @@ function formatUser(user: typeof usersTable.$inferSelect) {
     school: user.school,
     subject: user.subject ?? null,
     status: user.status,
+    avatarData: user.avatarData ?? null,
     createdAt: user.createdAt.toISOString(),
   };
 }

@@ -12,4 +12,5 @@ export interface Teacher {
   school: string;
   subject: string;
   status: string;
+  avatarData?: string | null;
 }

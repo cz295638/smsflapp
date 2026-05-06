@@ -1,11 +1,14 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useColors } from "@/hooks/useColors";
-import { useUpdateMyStatus } from "@workspace/api-client-react";
+import { useUpdateMyAvatar, useUpdateMyStatus } from "@workspace/api-client-react";
 import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
+  Image,
   Platform,
   Pressable,
   StyleSheet,
@@ -19,6 +22,7 @@ export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { user, logout, updateUser } = useAuth();
+  const [avatarLoading, setAvatarLoading] = useState(false);
 
   const statusMutation = useUpdateMyStatus({
     mutation: {
@@ -28,6 +32,42 @@ export default function ProfileScreen() {
       },
     },
   });
+
+  const avatarMutation = useUpdateMyAvatar({
+    mutation: {
+      onSuccess: (data) => {
+        updateUser(data as any);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setAvatarLoading(false);
+      },
+      onError: () => {
+        setAvatarLoading(false);
+        Alert.alert("Hata", "Fotoğraf yüklenemedi, tekrar deneyin.");
+      },
+    },
+  });
+
+  const handlePickPhoto = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("İzin Gerekli", "Fotoğraf seçmek için galeri iznine ihtiyaç var.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+      base64: true,
+    });
+    if (!result.canceled && result.assets[0]?.base64) {
+      setAvatarLoading(true);
+      const { base64, mimeType } = result.assets[0];
+      avatarMutation.mutate({
+        data: { avatarData: `data:${mimeType || "image/jpeg"};base64,${base64}` },
+      });
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert("Çıkış Yap", "Hesabınızdan çıkmak istiyor musunuz?", [
@@ -58,18 +98,49 @@ export default function ProfileScreen() {
       alignItems: "center",
       marginBottom: 28,
     },
+    avatarWrapper: {
+      position: "relative",
+      marginBottom: 12,
+    },
     avatar: {
-      width: 88,
-      height: 88,
-      borderRadius: 44,
+      width: 96,
+      height: 96,
+      borderRadius: 48,
       backgroundColor: isTeacher ? colors.success : colors.primary,
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: 12,
+    },
+    avatarImage: {
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+    },
+    avatarEditBadge: {
+      position: "absolute",
+      bottom: 0,
+      right: 0,
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      backgroundColor: colors.primary,
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 2,
+      borderColor: colors.background,
+    },
+    avatarEditIcon: { fontSize: 14 },
+    avatarLoading: {
+      position: "absolute",
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+      backgroundColor: "rgba(0,0,0,0.4)",
+      justifyContent: "center",
+      alignItems: "center",
     },
     avatarText: {
       color: "#fff",
-      fontSize: 36,
+      fontSize: 38,
       fontFamily: "Inter_700Bold",
     },
     userName: {
@@ -83,11 +154,17 @@ export default function ProfileScreen() {
       paddingVertical: 5,
       borderRadius: 20,
       backgroundColor: isTeacher ? colors.teacherBg : colors.studentBg,
+      marginBottom: 6,
     },
     roleTagText: {
       fontSize: 13,
       fontFamily: "Inter_600SemiBold",
       color: isTeacher ? colors.teacherAccent : colors.studentAccent,
+    },
+    changePhotoText: {
+      color: colors.primary,
+      fontSize: 13,
+      fontFamily: "Inter_500Medium",
     },
     section: {
       backgroundColor: colors.card,
@@ -105,9 +182,7 @@ export default function ProfileScreen() {
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    rowLast: {
-      borderBottomWidth: 0,
-    },
+    rowLast: { borderBottomWidth: 0 },
     rowIcon: { fontSize: 18, marginRight: 12, width: 26, textAlign: "center" },
     rowContent: { flex: 1 },
     rowLabel: {
@@ -166,15 +241,30 @@ export default function ProfileScreen() {
     <View style={s.container}>
       <View style={s.content}>
         <View style={s.avatarContainer}>
-          <View style={s.avatar}>
-            <Text style={s.avatarText}>{user.name.charAt(0).toUpperCase()}</Text>
-          </View>
+          <Pressable style={s.avatarWrapper} onPress={handlePickPhoto}>
+            {user.avatarData ? (
+              <Image source={{ uri: user.avatarData }} style={s.avatarImage} />
+            ) : (
+              <View style={s.avatar}>
+                <Text style={s.avatarText}>{user.name.charAt(0).toUpperCase()}</Text>
+              </View>
+            )}
+            {avatarLoading && (
+              <View style={s.avatarLoading}>
+                <ActivityIndicator color="#fff" />
+              </View>
+            )}
+            <View style={s.avatarEditBadge}>
+              <Text style={s.avatarEditIcon}>📷</Text>
+            </View>
+          </Pressable>
           <Text style={s.userName}>{user.name}</Text>
           <View style={s.roleTag}>
-            <Text style={s.roleTagText}>
-              {isTeacher ? "Öğretmen" : "Öğrenci"}
-            </Text>
+            <Text style={s.roleTagText}>{isTeacher ? "Öğretmen" : "Öğrenci"}</Text>
           </View>
+          <Pressable onPress={handlePickPhoto}>
+            <Text style={s.changePhotoText}>Fotoğrafı Değiştir</Text>
+          </Pressable>
         </View>
 
         <View style={s.section}>
