@@ -210,6 +210,16 @@ router.post(
       return;
     }
 
+    const [question] = await db
+      .select()
+      .from(questionsTable)
+      .where(eq(questionsTable.id, id));
+
+    if (!question) {
+      res.status(404).json({ error: "Soru bulunamadı" });
+      return;
+    }
+
     await db
       .update(questionsTable)
       .set({ status: "solved" })
@@ -225,6 +235,25 @@ router.post(
         note: parsed.data.note ?? null,
       })
       .returning();
+
+    const [student] = await db
+      .select({ pushToken: usersTable.pushToken, name: usersTable.name })
+      .from(usersTable)
+      .where(eq(usersTable.id, question.studentId));
+
+    if (student?.pushToken) {
+      fetch("https://exp.host/api/v2/push/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          to: student.pushToken,
+          title: "Sorunuz Çözüldü! 🎉",
+          body: `${user.name} sorunuzu çözdü, hemen inceleyin.`,
+          data: { questionId: id },
+          sound: "default",
+        }),
+      }).catch(() => {});
+    }
 
     res.status(201).json({
       id: solution.id,

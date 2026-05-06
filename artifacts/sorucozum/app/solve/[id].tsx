@@ -1,3 +1,4 @@
+import AudioRecorder from "@/components/AudioRecorder";
 import DrawingCanvas from "@/components/DrawingCanvas";
 import { useColors } from "@/hooks/useColors";
 import {
@@ -30,6 +31,7 @@ export default function SolveScreen() {
   const insets = useSafeAreaInsets();
   const [drawingData, setDrawingData] = useState("[]");
   const [note, setNote] = useState("");
+  const [audioData, setAudioData] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"photo" | "draw">("photo");
 
   const { data, isLoading } = useGetQuestion(Number(id));
@@ -69,6 +71,7 @@ export default function SolveScreen() {
               data: {
                 drawingData,
                 note: note || undefined,
+                audioData: audioData || undefined,
               },
             });
           },
@@ -136,18 +139,21 @@ export default function SolveScreen() {
       borderColor: colors.border,
       borderRadius: 10,
       padding: 12,
-      margin: 12,
-      marginTop: 0,
+      marginHorizontal: 12,
+      marginBottom: 8,
       fontSize: 14,
       fontFamily: "Inter_400Regular",
       color: colors.foreground,
-      height: 72,
+      height: 60,
       textAlignVertical: "top",
+    },
+    audioRow: {
+      marginHorizontal: 12,
+      marginBottom: 8,
     },
     submitBtn: {
       backgroundColor: colors.primary,
-      margin: 12,
-      marginTop: 0,
+      marginHorizontal: 12,
       marginBottom: insets.bottom + 12,
       paddingVertical: 16,
       borderRadius: colors.radius,
@@ -256,6 +262,13 @@ export default function SolveScreen() {
         placeholderTextColor={colors.mutedForeground}
         multiline
       />
+
+      <View style={s.audioRow}>
+        <AudioRecorder
+          onRecordingComplete={(uri) => setAudioData(uri)}
+          onClear={() => setAudioData(null)}
+        />
+      </View>
 
       <Pressable
         style={({ pressed }) => [s.submitBtn, { opacity: pressed ? 0.85 : 1 }]}

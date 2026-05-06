@@ -38,16 +38,19 @@ Turkish school Q&A mobile app where students photograph questions and send them 
 
 - **Role-based tabs**: Single `(tabs)` layout hides/shows tabs based on `user.role` via `tabBarButton: () => null`; students see "Soru Sor" + "Geçmişim" + "Profil", teachers see "Sorular" + "Profil"
 - **Smart matching**: Question pool sorts same-school questions first; student can optionally pick a preferred teacher
-- **Base64 photos**: Question photos stored as base64 data URLs in PostgreSQL (25MB payload limit on server)
+- **Base64 photos/audio**: Question photos and voice notes stored as base64 data URLs in PostgreSQL (25MB payload limit on server)
 - **Drawing canvas**: SVG paths via `react-native-svg` + `PanResponder`; serialized to JSON string for API storage
 - **lib/api-zod index.ts**: Must only export from `./generated/api` (not `./generated/types`) to avoid TS2308 duplicate export errors
+- **Push notifications**: `pushToken` column in users table; server calls `https://exp.host/api/v2/push/send` fire-and-forget; token registered in AuthContext after login
 
 ## Product
 
-- **Student flow**: Register → take/pick question photo → select subject → optionally pick teacher → submit → view solution in history
-- **Teacher flow**: Register with school + branş → browse question pool (sorted by same-school first) → claim question → draw solution on canvas (colored pens + eraser) → add note → submit
+- **Student flow**: Register → take/pick question photo → select subject → optionally pick teacher → submit → view solution in history → receive push notification when solved
+- **Teacher flow**: Register with school + branş → browse question pool (sorted by same-school first) → claim question → draw solution on canvas (colored pens + eraser) → record voice note → add text note → submit
 - **Availability toggle**: Teachers can toggle "Müsaitim / Dersteyim" status on profile screen
 - **Auto-refresh**: Question pool refreshes every 15s, history every 20s
+- **Push notifications**: Expo push token stored per user; server fires Expo push API when solution submitted
+- **Voice notes**: Teachers record audio with expo-av (m4a, base64); students play it back in solution screen
 
 ## User preferences
 

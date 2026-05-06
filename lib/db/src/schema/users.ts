@@ -12,6 +12,7 @@ export const usersTable = pgTable("users", {
   subject: text("subject"),
   status: text("status").notNull().default("available"),
   avatarData: text("avatar_data"),
+  pushToken: text("push_token"),
   token: text("token"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

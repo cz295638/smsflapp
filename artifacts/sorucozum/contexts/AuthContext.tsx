@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { setAuthTokenGetter, setBaseUrl } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import * as Notifications from "expo-notifications";
 import React, {
   createContext,
   useCallback,
@@ -41,6 +42,28 @@ let _token: string | null = null;
 
 setAuthTokenGetter(() => _token);
 
+async function registerPushToken(authToken: string, baseUrl: string) {
+  try {
+    const { granted } = await Notifications.requestPermissionsAsync();
+    if (!granted) return;
+
+    const tokenData = await Notifications.getExpoPushTokenAsync();
+    const pushToken = tokenData.data;
+
+    const url = baseUrl ? `https://${baseUrl}/api/users/me/push-token` : "/api/users/me/push-token";
+    await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ token: pushToken }),
+    });
+  } catch {
+    // Push token registration is non-critical, ignore errors
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -60,6 +83,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         _token = storedToken;
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
+        const domain = process.env.EXPO_PUBLIC_DOMAIN ?? "";
+        registerPushToken(storedToken, domain);
       }
       setIsLoading(false);
     });
@@ -73,6 +98,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       [TOKEN_KEY, newToken],
       [USER_KEY, JSON.stringify(newUser)],
     ]);
+    const domain = process.env.EXPO_PUBLIC_DOMAIN ?? "";
+    registerPushToken(newToken, domain);
   }, []);
 
   const logout = useCallback(async () => {

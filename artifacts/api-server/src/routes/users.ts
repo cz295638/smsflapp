@@ -49,6 +49,23 @@ router.patch(
   },
 );
 
+router.post(
+  "/users/me/push-token",
+  requireAuth,
+  async (req: AuthenticatedRequest, res): Promise<void> => {
+    const { token } = req.body as { token?: string };
+    if (!token || typeof token !== "string") {
+      res.status(400).json({ error: "Geçersiz token" });
+      return;
+    }
+    await db
+      .update(usersTable)
+      .set({ pushToken: token })
+      .where(eq(usersTable.id, req.user!.id));
+    res.json({ ok: true });
+  },
+);
+
 router.patch(
   "/users/me/status",
   requireAuth,

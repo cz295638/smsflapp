@@ -1,3 +1,4 @@
+import AudioPlayer from "@/components/AudioPlayer";
 import { useColors } from "@/hooks/useColors";
 import { useGetQuestion } from "@workspace/api-client-react";
 import { useLocalSearchParams } from "expo-router";
@@ -10,7 +11,6 @@ import {
   StyleSheet,
   Text,
   View,
-  ScrollView,
 } from "react-native";
 import Svg, { Path, Image as SvgImage } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -101,6 +101,7 @@ export default function SolutionScreen() {
       backgroundColor: colors.success,
       justifyContent: "center",
       alignItems: "center",
+      overflow: "hidden",
     },
     teacherAvatarText: {
       color: "#fff",
@@ -128,9 +129,12 @@ export default function SolutionScreen() {
       fontFamily: "Inter_600SemiBold",
       color: "#065F46",
     },
+    bottomCards: {
+      paddingHorizontal: 12,
+      paddingBottom: insets.bottom + 12,
+      gap: 8,
+    },
     noteCard: {
-      margin: 12,
-      marginTop: 0,
       backgroundColor: colors.card,
       borderRadius: colors.radius,
       padding: 14,
@@ -195,16 +199,23 @@ export default function SolutionScreen() {
     <View style={s.container}>
       <View style={s.teacherInfo}>
         <View style={s.teacherAvatar}>
-          <Text style={s.teacherAvatarText}>
-            {solution.teacherName.charAt(0).toUpperCase()}
-          </Text>
+          {(solution as any).teacherAvatarData ? (
+            <Image
+              source={{ uri: (solution as any).teacherAvatarData }}
+              style={{ width: 40, height: 40, borderRadius: 20 }}
+            />
+          ) : (
+            <Text style={s.teacherAvatarText}>
+              {solution.teacherName.charAt(0).toUpperCase()}
+            </Text>
+          )}
         </View>
         <View style={{ flex: 1 }}>
           <Text style={s.teacherName}>{solution.teacherName}</Text>
           <Text style={s.teacherLabel}>Öğretmen tarafından çözüldü</Text>
         </View>
         <View style={s.solvedBadge}>
-          <Text style={s.solvedText}>Çözüldü</Text>
+          <Text style={s.solvedText}>Çözüldü ✓</Text>
         </View>
       </View>
 
@@ -261,12 +272,17 @@ export default function SolutionScreen() {
         </View>
       )}
 
-      {solution.note ? (
-        <View style={s.noteCard}>
-          <Text style={s.noteLabel}>Öğretmen Notu</Text>
-          <Text style={s.noteText}>{solution.note}</Text>
-        </View>
-      ) : null}
+      <View style={s.bottomCards}>
+        {solution.audioData ? (
+          <AudioPlayer audioData={solution.audioData} />
+        ) : null}
+        {solution.note ? (
+          <View style={s.noteCard}>
+            <Text style={s.noteLabel}>Öğretmen Notu</Text>
+            <Text style={s.noteText}>{solution.note}</Text>
+          </View>
+        ) : null}
+      </View>
     </View>
   );
 }
