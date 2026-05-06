@@ -14,3 +14,181 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * @summary Register a new user
+ */
+export const RegisterBody = zod.object({
+  name: zod.string(),
+  email: zod.string(),
+  password: zod.string(),
+  role: zod.enum(["student", "teacher"]),
+  school: zod.string(),
+  subject: zod.string().optional(),
+});
+
+/**
+ * @summary Login
+ */
+export const LoginBody = zod.object({
+  email: zod.string(),
+  password: zod.string(),
+});
+
+export const LoginResponse = zod.object({
+  token: zod.string(),
+  user: zod.object({
+    id: zod.number(),
+    name: zod.string(),
+    email: zod.string(),
+    role: zod.string(),
+    school: zod.string(),
+    subject: zod.string().nullish(),
+    status: zod.string(),
+    createdAt: zod.string(),
+  }),
+});
+
+/**
+ * @summary Get current user
+ */
+export const GetMeResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  email: zod.string(),
+  role: zod.string(),
+  school: zod.string(),
+  subject: zod.string().nullish(),
+  status: zod.string(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Update teacher availability status
+ */
+export const UpdateMyStatusBody = zod.object({
+  status: zod.enum(["available", "busy"]),
+});
+
+export const UpdateMyStatusResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  email: zod.string(),
+  role: zod.string(),
+  school: zod.string(),
+  subject: zod.string().nullish(),
+  status: zod.string(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary List questions
+ */
+export const ListQuestionsQueryParams = zod.object({
+  subject: zod.coerce.string().optional(),
+});
+
+export const ListQuestionsResponseItem = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  subject: zod.string(),
+  photoData: zod.string(),
+  status: zod.string(),
+  teacherId: zod.number().nullish(),
+  createdAt: zod.string(),
+  studentName: zod.string(),
+  studentSchool: zod.string(),
+});
+export const ListQuestionsResponse = zod.array(ListQuestionsResponseItem);
+
+/**
+ * @summary Submit a question (student)
+ */
+export const CreateQuestionBody = zod.object({
+  subject: zod.string(),
+  photoData: zod.string(),
+  preferredTeacherId: zod.number().nullish(),
+  note: zod.string().nullish(),
+});
+
+/**
+ * @summary Get a question with its solution
+ */
+export const GetQuestionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetQuestionResponse = zod.object({
+  question: zod.object({
+    id: zod.number(),
+    studentId: zod.number(),
+    subject: zod.string(),
+    photoData: zod.string(),
+    status: zod.string(),
+    teacherId: zod.number().nullish(),
+    createdAt: zod.string(),
+    studentName: zod.string(),
+    studentSchool: zod.string(),
+  }),
+  solution: zod
+    .object({
+      id: zod.number(),
+      questionId: zod.number(),
+      teacherId: zod.number(),
+      drawingData: zod.string(),
+      audioData: zod.string().nullish(),
+      note: zod.string().nullish(),
+      createdAt: zod.string(),
+      teacherName: zod.string(),
+    })
+    .nullish(),
+});
+
+/**
+ * @summary Teacher claims a question
+ */
+export const ClaimQuestionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ClaimQuestionResponse = zod.object({
+  id: zod.number(),
+  studentId: zod.number(),
+  subject: zod.string(),
+  photoData: zod.string(),
+  status: zod.string(),
+  teacherId: zod.number().nullish(),
+  createdAt: zod.string(),
+  studentName: zod.string(),
+  studentSchool: zod.string(),
+});
+
+/**
+ * @summary Teacher submits solution
+ */
+export const SubmitSolutionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const SubmitSolutionBody = zod.object({
+  drawingData: zod.string(),
+  audioData: zod.string().nullish(),
+  note: zod.string().nullish(),
+});
+
+/**
+ * @summary List teachers by subject
+ */
+export const ListTeachersQueryParams = zod.object({
+  subject: zod.coerce.string().optional(),
+  school: zod.coerce.string().optional(),
+});
+
+export const ListTeachersResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  school: zod.string(),
+  subject: zod.string(),
+  status: zod.string(),
+});
+export const ListTeachersResponse = zod.array(ListTeachersResponseItem);

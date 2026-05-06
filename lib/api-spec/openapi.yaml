@@ -10,6 +10,14 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: users
+    description: User operations
+  - name: questions
+    description: Question operations
+  - name: teachers
+    description: Teacher operations
 paths:
   /healthz:
     get:
@@ -24,7 +32,242 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users/me:
+    get:
+      operationId: getMe
+      tags: [users]
+      summary: Get current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users/me/status:
+    patch:
+      operationId: updateMyStatus
+      tags: [users]
+      summary: Update teacher availability status
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStatusBody"
+      responses:
+        "200":
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /questions:
+    get:
+      operationId: listQuestions
+      tags: [questions]
+      summary: List questions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: subject
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of questions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuestionList"
+    post:
+      operationId: createQuestion
+      tags: [questions]
+      summary: Submit a question (student)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateQuestionBody"
+      responses:
+        "201":
+          description: Question created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Question"
+
+  /questions/{id}:
+    get:
+      operationId: getQuestion
+      tags: [questions]
+      summary: Get a question with its solution
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Question detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuestionDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /questions/{id}/claim:
+    patch:
+      operationId: claimQuestion
+      tags: [questions]
+      summary: Teacher claims a question
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Question claimed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Question"
+
+  /questions/{id}/solution:
+    post:
+      operationId: submitSolution
+      tags: [questions]
+      summary: Teacher submits solution
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitSolutionBody"
+      responses:
+        "201":
+          description: Solution submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Solution"
+
+  /teachers:
+    get:
+      operationId: listTeachers
+      tags: [teachers]
+      summary: List teachers by subject
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: subject
+          in: query
+          schema:
+            type: string
+        - name: school
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of teachers
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeacherList"
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
   schemas:
     HealthStatus:
       type: object
@@ -34,3 +277,186 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    RegisterBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum: [student, teacher]
+        school:
+          type: string
+        subject:
+          type: string
+      required: [name, email, password, role, school]
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required: [email, password]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        school:
+          type: string
+        subject:
+          type: string
+          nullable: true
+        status:
+          type: string
+        createdAt:
+          type: string
+      required: [id, name, email, role, school, status, createdAt]
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required: [token, user]
+
+    UpdateStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [available, busy]
+      required: [status]
+
+    Question:
+      type: object
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        subject:
+          type: string
+        photoData:
+          type: string
+        status:
+          type: string
+        teacherId:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+        studentName:
+          type: string
+        studentSchool:
+          type: string
+      required: [id, studentId, subject, photoData, status, createdAt, studentName, studentSchool]
+
+    QuestionList:
+      type: array
+      items:
+        $ref: "#/components/schemas/Question"
+
+    CreateQuestionBody:
+      type: object
+      properties:
+        subject:
+          type: string
+        photoData:
+          type: string
+        preferredTeacherId:
+          type: integer
+          nullable: true
+        note:
+          type: string
+          nullable: true
+      required: [subject, photoData]
+
+    Solution:
+      type: object
+      properties:
+        id:
+          type: integer
+        questionId:
+          type: integer
+        teacherId:
+          type: integer
+        drawingData:
+          type: string
+        audioData:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+        teacherName:
+          type: string
+      required: [id, questionId, teacherId, drawingData, createdAt, teacherName]
+
+    QuestionDetail:
+      type: object
+      properties:
+        question:
+          $ref: "#/components/schemas/Question"
+        solution:
+          $ref: "#/components/schemas/Solution"
+          nullable: true
+      required: [question]
+
+    SubmitSolutionBody:
+      type: object
+      properties:
+        drawingData:
+          type: string
+        audioData:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+      required: [drawingData]
+
+    Teacher:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        school:
+          type: string
+        subject:
+          type: string
+        status:
+          type: string
+      required: [id, name, school, subject, status]
+
+    TeacherList:
+      type: array
+      items:
+        $ref: "#/components/schemas/Teacher"

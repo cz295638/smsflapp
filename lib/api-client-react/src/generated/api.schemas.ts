@@ -8,3 +8,119 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface ErrorResponse {
+  error: string;
+}
+
+export type RegisterBodyRole =
+  (typeof RegisterBodyRole)[keyof typeof RegisterBodyRole];
+
+export const RegisterBodyRole = {
+  student: "student",
+  teacher: "teacher",
+} as const;
+
+export interface RegisterBody {
+  name: string;
+  email: string;
+  password: string;
+  role: RegisterBodyRole;
+  school: string;
+  subject?: string;
+}
+
+export interface LoginBody {
+  email: string;
+  password: string;
+}
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  school: string;
+  subject?: string | null;
+  status: string;
+  createdAt: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: User;
+}
+
+export type UpdateStatusBodyStatus =
+  (typeof UpdateStatusBodyStatus)[keyof typeof UpdateStatusBodyStatus];
+
+export const UpdateStatusBodyStatus = {
+  available: "available",
+  busy: "busy",
+} as const;
+
+export interface UpdateStatusBody {
+  status: UpdateStatusBodyStatus;
+}
+
+export interface Question {
+  id: number;
+  studentId: number;
+  subject: string;
+  photoData: string;
+  status: string;
+  teacherId?: number | null;
+  createdAt: string;
+  studentName: string;
+  studentSchool: string;
+}
+
+export type QuestionList = Question[];
+
+export interface CreateQuestionBody {
+  subject: string;
+  photoData: string;
+  preferredTeacherId?: number | null;
+  note?: string | null;
+}
+
+export interface Solution {
+  id: number;
+  questionId: number;
+  teacherId: number;
+  drawingData: string;
+  audioData?: string | null;
+  note?: string | null;
+  createdAt: string;
+  teacherName: string;
+}
+
+export interface QuestionDetail {
+  question: Question;
+  solution?: Solution | null;
+}
+
+export interface SubmitSolutionBody {
+  drawingData: string;
+  audioData?: string | null;
+  note?: string | null;
+}
+
+export interface Teacher {
+  id: number;
+  name: string;
+  school: string;
+  subject: string;
+  status: string;
+}
+
+export type TeacherList = Teacher[];
+
+export type ListQuestionsParams = {
+  subject?: string;
+};
+
+export type ListTeachersParams = {
+  subject?: string;
+  school?: string;
+};

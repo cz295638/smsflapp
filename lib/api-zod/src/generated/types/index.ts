@@ -6,4 +6,22 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./authResponse";
+export * from "./createQuestionBody";
+export * from "./errorResponse";
 export * from "./healthStatus";
+export * from "./listQuestionsParams";
+export * from "./listTeachersParams";
+export * from "./loginBody";
+export * from "./question";
+export * from "./questionDetail";
+export * from "./questionList";
+export * from "./registerBody";
+export * from "./registerBodyRole";
+export * from "./solution";
+export * from "./submitSolutionBody";
+export * from "./teacher";
+export * from "./teacherList";
+export * from "./updateStatusBody";
+export * from "./updateStatusBodyStatus";
+export * from "./user";
