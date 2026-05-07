@@ -1,3 +1,4 @@
+import { View, Platform } from 'react-native';
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -6,63 +7,28 @@ import {
   useFonts,
 } from "@expo-google-fonts/inter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import * as Notifications from "expo-notifications";
-import { router, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect } from "react";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { KeyboardProvider } from "react-native-keyboard-controller";
+import React, { useEffect, useCallback } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { ErrorBoundary } from "../components/ErrorBoundary";
+import { AuthProvider } from "../contexts/AuthContext";
 
-SplashScreen.preventAutoHideAsync();
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
+// Açılış ekranını kilitliyoruz ki fontlar yüklenmeden uygulama beyaz ekran vermesin
+SplashScreen.preventAutoHideAsync().catch(() => {
+  /* Hata durumunda sessizce devam et */
 });
 
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
-  useEffect(() => {
-    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
-      const data = response.notification.request.content.data as { questionId?: number };
-      if (data?.questionId) {
-        router.push(`/solution/${data.questionId}` as never);
-      }
-    });
-    return () => sub.remove();
-  }, []);
-
   return (
+    // headerShown değerinin kesinlikle boolean (true/false) olduğundan emin oluyoruz
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="solve/[id]"
-        options={{
-          headerShown: true,
-          title: "Soruyu Çöz",
-          headerBackTitle: "Geri",
-        }}
-      />
-      <Stack.Screen
-        name="solution/[id]"
-        options={{
-          headerShown: true,
-          title: "Çözüm",
-          headerBackTitle: "Geri",
-        }}
-      />
     </Stack>
   );
 }
@@ -75,27 +41,35 @@ export default function RootLayout() {
     Inter_700Bold,
   });
 
+  // Fontlar yüklendiğinde veya hata verdiğinde Splash Screen'i kapat
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
+      const hideSplash = async () => {
+        try {
+          await SplashScreen.hideAsync();
+        } catch (e) {
+          console.warn("Splash screen hide error:", e);
+        }
+      };
+      hideSplash();
     }
   }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded && !fontError) return null;
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
 
   return (
-    <SafeAreaProvider>
-      <ErrorBoundary>
+    <View style={{ flex: 1 }}>
+      <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <GestureHandlerRootView>
-              <KeyboardProvider>
-                <RootLayoutNav />
-              </KeyboardProvider>
-            </GestureHandlerRootView>
+            <ErrorBoundary>
+              <RootLayoutNav />
+            </ErrorBoundary>
           </AuthProvider>
         </QueryClientProvider>
-      </ErrorBoundary>
-    </SafeAreaProvider>
+      </SafeAreaProvider>
+    </View>
   );
 }
